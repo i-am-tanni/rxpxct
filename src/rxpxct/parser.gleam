@@ -88,10 +88,10 @@ fn utf_codepoint() -> Parser(UtfCodepoint, ParseError(String)) {
   }
   case result {
     Ok(val) -> party.return(val)
-    Error(_) ->
-      party.error_map(party.fail(), fn(_) {
-        party.Unexpected(pos: pos, error: "Expected utf codepoint")
-      })
+    Error(Nil) -> {
+      use _ <- party.error_map(party.fail())
+      party.Unexpected(pos: pos, error: "Expected utf codepoint")
+    }
   }
 }
 
