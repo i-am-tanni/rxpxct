@@ -1,0 +1,10 @@
+{
+    "color_mode": "truecolor",
+    "r": "{r}",
+    "g": "{g}",
+    "b": "{b}",
+    "foreground": "\\e[38;2;{r};{g};{b}m",
+    "background": "\\e[48;2;{r};{g};{b}m",
+    "reset": "\\e[0m",
+    "base": 10
+  }

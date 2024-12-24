@@ -1,0 +1,8 @@
+{
+    "color_mode": "256",
+    "symbol": "{c}",
+    "foreground": "\\e[38;5;{c}m",
+    "background": "\\e[48;5;{c}m",
+    "reset": "\\e[0m",
+    "base": 10
+  }

@@ -1,0 +1,8 @@
+{
+    "color_mode": "256",
+    "symbol": "{c}",
+    "foreground": "%^PF{c}%^",
+    "background": "%^B_PF{c}%^",
+    "reset": "%^RESET%^",
+    "base": 10
+  }

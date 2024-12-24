@@ -1,0 +1,10 @@
+{
+    "color_mode": "truecolor",
+    "r": "rr",
+    "g": "gg",
+    "b": "bb",
+    "foreground": "$chfrrggbb",
+    "background": "$chbrrggbb",
+    "reset": "$chk000000",
+    "base": 16
+}
