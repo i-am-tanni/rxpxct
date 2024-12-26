@@ -1,3 +1,4 @@
+import argv
 import gleam/io
 import gleam/result
 import gleam/string
@@ -8,15 +9,23 @@ import rxpxct/parser
 import simplifile
 
 pub fn main() {
-  let arg1 = "./sample/sample.xml"
-  let arg2 = "./formats/ansi_truecolor.json"
-  case run(arg1, arg2) {
-    Ok(_) -> io.println("Done!")
-    Error(e) -> io.println_error(error.to_string(e))
+  case argv.load().arguments {
+    [xml_path, format_path] -> {
+      case run(xml_path, format_path) {
+        Ok(_) -> io.println("Done!")
+        Error(e) -> io.println_error(error.to_string(e))
+      }
+    }
+
+    _ -> {
+      let argv_error =
+        "To run this conversion tool, type `gleam run <xml_path> <format_path>`"
+      io.println(argv_error)
+    }
   }
 }
 
-fn run(arg1: String, arg2: String) -> Result(Nil, error.WrapperError) {
+pub fn run(arg1: String, arg2: String) -> Result(Nil, error.WrapperError) {
   use xml_data <- result.try(importer.import_xml(arg1))
   use format <- result.try(importer.import_format(arg2))
   use parsed_data <- result.try(parser.run(xml_data))

@@ -25,10 +25,12 @@ pub fn import_format(format_path: String) -> Result(Format, WrapperError) {
   to_format(json)
 }
 
-fn to_format(json: String) -> Result(Format, WrapperError) {
-  use <- result.lazy_or(to_format24_bit(json))
-  use <- result.lazy_or(to_format256(json))
-  to_format16(json)
+fn to_format(json_string: String) -> Result(Format, WrapperError) {
+  // one decoder rather than three would likely be more efficient here 
+  //   since the json_string would not be converted to a dict three times
+  use <- result.lazy_or(to_format24_bit(json_string))
+  use <- result.lazy_or(to_format256(json_string))
+  to_format16(json_string)
 }
 
 fn to_format24_bit(json: String) -> Result(Format, WrapperError) {
