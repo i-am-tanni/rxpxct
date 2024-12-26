@@ -1,6 +1,5 @@
 import gleam/dict
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/pair
 import gleam/result
