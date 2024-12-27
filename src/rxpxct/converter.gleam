@@ -10,11 +10,7 @@ import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
 import rxpxct/parser.{type Token, Ascii, Background, Foreground}
 
 pub fn run(lines: List(List(Token)), format: Format) -> List(String) {
-  let reset = case format {
-    FormatTrue(reset: reset, ..) -> reset
-    Format256(reset: reset, ..) -> reset
-    Format16(reset: reset, ..) -> reset
-  }
+  let reset = format.reset
 
   lines
   |> minimize_color_codes()

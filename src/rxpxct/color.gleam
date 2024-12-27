@@ -1,3 +1,5 @@
+// downsample algorithm ported from Tmux
+
 import gleam/bool
 import glearray.{type Array}
 

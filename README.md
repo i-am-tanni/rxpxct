@@ -1,24 +1,47 @@
-# rxpxct
+# rxpxct - REXPaint Export Conversion Tool
 
-[![Package Version](https://img.shields.io/hexpm/v/rxpxct)](https://hex.pm/packages/rxpxct)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/rxpxct/)
+A CLI tool for converting REXPaint xml exports.
 
-```sh
-gleam add rxpxct@1
-```
-```gleam
-import rxpxct
+## Purpose
 
-pub fn main() {
-  // TODO: An example of the project in use
-}
-```
+REXPaint by Kyzrati is a super useful tool for creating ascii art.
+The problem is the exports cannot be immediately used for display 
+in Multi-User Dungeons (MUDs), which often require a custom color format.
 
-Further documentation can be found at <https://hexdocs.pm/rxpxct>.
+The purpose of this tool is to to convert a REXPaint xml export to the 
+custom format their game uses for color display.
 
-## Development
+Naturally this can be extended to any scenario that requires converting
+a REXPaint export to an alternative format.
+
+## To Run
 
 ```sh
-gleam run   # Run the project
-gleam test  # Run the tests
+gleam run ./path/to/rexpaint_export.xml ./path/to/format.json
 ```
+
+The output is saved to the xml path as a *.txt file.
+
+## Color Formats
+
+Several common color formats are provided for immediate use under `/formats/`:
+
+- ansi_16
+- ansi_256
+- ansi_trucolor
+- fansi256
+
+And some game specific formats:
+
+- Astaria (256)
+- Lumen et Umbra (Truecolor)
+
+Supports color formats in 16, xterm 256, and 24 Bit (Truecolor).
+
+Adding a new format should be relatively straitforward following the examples
+in the folder above.
+
+## Contact
+
+If you would like to have your game's format included in this tool,
+please feel free to reach out or submit a pull request.

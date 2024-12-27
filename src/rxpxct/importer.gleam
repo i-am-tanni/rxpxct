@@ -14,7 +14,7 @@ import simplifile
 pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
   case string.ends_with(xml_path, ".xml") {
     True -> read(xml_path)
-    False -> Error(WrongExtension(expected: ".xml"))
+    False -> Error(WrongExtension(expected: ".xml", path: xml_path))
   }
 }
 
@@ -25,7 +25,7 @@ pub fn import_format(format_path: String) -> Result(Format, WrapperError) {
 
 fn read(path: String) -> Result(String, WrapperError) {
   use error <- result.map_error(simplifile.read(path))
-  ImportError(error)
+  ImportError(path: path, error: error)
 }
 
 fn to_format(json_string: String) -> Result(Format, WrapperError) {
@@ -41,12 +41,12 @@ fn to_format24_bit(json: String) -> Result(Format, WrapperError) {
   let decoder =
     dynamic.decode7(
       FormatTrue,
+      field("reset", of: string),
       field("r", of: string),
       field("g", of: string),
       field("b", of: string),
       field("foreground", of: string),
       field("background", of: string),
-      field("reset", of: string),
       field("base", of: base),
     )
 
@@ -63,10 +63,10 @@ fn to_format256(json: String) -> Result(Format, WrapperError) {
   let decoder =
     dynamic.decode6(
       Format256,
+      field("reset", of: string),
       field("symbol", of: string),
       field("foreground", of: string),
       field("background", of: string),
-      field("reset", of: string),
       field("base", of: base),
       lookups256,
     )
@@ -86,9 +86,9 @@ fn to_format16(json: String) -> Result(Format, WrapperError) {
   let decoder =
     dynamic.decode6(
       Format16,
+      field("reset", of: string),
       field("symbol", of: string),
       field("pattern", of: string),
-      field("reset", of: string),
       field("foreground", of: string_array),
       field("background", of: string_array),
       lookups16,
