@@ -1,3 +1,5 @@
+//// Reads in format data to Format type. Reads in xml data.
+
 import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic, dict, field, int, string}
 import gleam/int

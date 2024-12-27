@@ -1,4 +1,4 @@
-// downsample algorithm ported from Tmux
+//// Functions for downsampling colors. Downsample algorithm ported from Tmux.
 
 import gleam/bool
 import glearray.{type Array}
@@ -10,13 +10,13 @@ pub type Color {
   Color
 }
 
-// lookup table for downsampling 24 bit truecolor to 256 colors
+/// lookup table for downsampling 24 bit truecolor to 256 colors
 pub fn generate_q2c() -> Array(Int) {
   [0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff]
   |> glearray.from_list()
 }
 
-// lookup table for downsampling xterm 256 colors to 16 colors
+/// lookup table for downsampling xterm 256 colors to 16 colors
 pub fn generate_code256to16() -> Array(Int) {
   [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 4, 4, 4, 12, 12, 2,

@@ -1,3 +1,5 @@
+//// Code for converting parsed data to strings
+
 import gleam/dict
 import gleam/int
 import gleam/list
@@ -20,6 +22,7 @@ pub fn run(lines: List(List(Token)), format: Format) -> List(String) {
   |> list.append([reset])
 }
 
+/// eliminates redundant color codes
 fn minimize_color_codes(tokens: List(List(Token))) -> List(List(Token)) {
   list.map_fold(tokens, #(Color, Color), fn(acc, chunk) {
     let #(last_fgd, last_bkg) = acc
