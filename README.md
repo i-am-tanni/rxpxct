@@ -41,6 +41,8 @@ Supports color formats in 16, xterm 256, and 24 Bit (Truecolor).
 Adding a new format should be relatively straitforward following the examples
 in the folder above.
 
+For substitutions, repeated color symbols will add leading zeros for the final result.
+
 ## Contact
 
 If you would like to have your game's format included in this tool,
