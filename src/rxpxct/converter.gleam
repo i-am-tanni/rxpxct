@@ -226,6 +226,7 @@ fn cp437_to_unicode(code: Int) -> Result(Int, Nil) {
     0x1d -> Ok(0x2194)
     0x1e -> Ok(0x25B2)
     0x1f -> Ok(0x25BC)
+    x if x > 0x1f && x < 0x80 -> Ok(x)
     0x80 -> Ok(0x00c7)
     0x81 -> Ok(0x00fc)
     0x82 -> Ok(0x00e9)
@@ -354,7 +355,6 @@ fn cp437_to_unicode(code: Int) -> Result(Int, Nil) {
     0xfd -> Ok(0x00b2)
     0xfe -> Ok(0x25a0)
     0xff -> Ok(0x00a0)
-    x if x > 0x1f && x < 0x80 -> Ok(x)
     _ -> Error(Nil)
   }
 }
