@@ -1,19 +1,13 @@
 import gleam/int
 import gleam/list
 import gleam/result
-import gleam/string
 import party.{
-  type ParseError, type Parser, alphanum, between, choice, digits, do, drop,
-  many1, many1_concat, map, satisfy, seq, string, whitespace, whitespace1,
+  type ParseError, type Parser, alphanum, between, char, choice, digits, do,
+  drop, many1, many1_concat, many_concat, map, satisfy, seq, string,
 }
 import rxpxct/color.{type Color, TrueColor}
 import rxpxct/error.{type WrapperError}
-
-pub type Token {
-  Foreground(Color)
-  Background(Color)
-  Ascii(UtfCodepoint)
-}
+import rxpxct/token.{type Token, Ascii, Background, Foreground, Newline}
 
 pub fn run(s: String) -> Result(List(List(Token)), WrapperError) {
   party.go(xml_parser(), s)
@@ -46,26 +40,26 @@ fn data() -> Parser(List(List(Token)), ParseError(String)) {
 }
 
 fn row() -> Parser(List(List(Token)), ParseError(String)) {
-  let assert Ok(newline_cp) = string.utf_codepoint(10)
-
   between(
     string("<row>"),
-    many1(
-      choice([seq(whitespace(), wrap(blank_cell())), seq(whitespace(), cell())]),
-    ),
+    many1(seq(whitespace(), cell())),
     seq(whitespace(), string("</row>")),
   )
-  |> map(list.append(_, [[Ascii(newline_cp)]]))
-}
-
-fn blank_cell() -> Parser(Token, ParseError(String)) {
-  let assert Ok(whitespace_cp) = string.utf_codepoint(32)
-  string("<cell><ascii>32</ascii><fgd>#000000</fgd><bkg>#000000</bkg></cell>")
-  |> map(fn(_) { Ascii(whitespace_cp) })
+  |> map(list.append(_, [[Newline]]))
 }
 
 fn cell() -> Parser(List(Token), ParseError(String)) {
-  let ascii = between(string("<ascii>"), utf_codepoint(), string("</ascii>"))
+  let ascii = {
+    use string <- do(digits())
+    let x = case result.unwrap(int.parse(string), -1) {
+      -1 -> 0
+      x if x < 32 -> 32
+      x -> x
+    }
+    party.return(x)
+  }
+
+  let ascii = between(string("<ascii>"), ascii, string("</ascii>"))
   let foreground = between(string("<fgd>"), rgb(), string("</fgd>"))
   let background = between(string("<bkg>"), rgb(), string("</bkg>"))
 
@@ -77,22 +71,6 @@ fn cell() -> Parser(List(Token), ParseError(String)) {
   }
 
   between(string("<cell>"), cell, string("</cell>"))
-}
-
-fn utf_codepoint() -> Parser(UtfCodepoint, ParseError(String)) {
-  use pos <- do(party.pos())
-  use string <- do(digits())
-  let result = {
-    use val <- result.try(int.parse(string))
-    string.utf_codepoint(val)
-  }
-  case result {
-    Ok(val) -> party.return(val)
-    Error(Nil) -> {
-      use _ <- party.error_map(party.fail())
-      party.Unexpected(pos: pos, error: "Expected utf codepoint")
-    }
-  }
 }
 
 fn rgb() -> Parser(Color, ParseError(String)) {
@@ -116,7 +94,12 @@ fn hex256() -> Parser(Int, ParseError(String)) {
   }
 }
 
-fn wrap(p: Parser(a, e)) -> Parser(List(a), e) {
-  use x <- map(p)
-  [x]
+/// Parse zero or more whitespace characters.
+pub fn whitespace() -> Parser(String, e) {
+  many_concat(choice([char(" "), char("\t"), char("\r\n"), char("\n")]))
+}
+
+/// Parse one or more whitespace characters.
+pub fn whitespace1() -> Parser(String, e) {
+  many1_concat(choice([char(" "), char("\t"), char("\r\n"), char("\n")]))
 }
