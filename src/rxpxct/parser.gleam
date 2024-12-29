@@ -49,13 +49,10 @@ fn row() -> Parser(List(List(Token)), ParseError(String)) {
 }
 
 fn cell() -> Parser(List(Token), ParseError(String)) {
-  // not sure what to do about non-printable characters 
-  //   other than default to spaces
   let ascii = {
     use string <- do(digits())
     int.parse(string)
-    |> result.unwrap(-1)
-    |> int.max(32)
+    |> result.unwrap(0)
     |> party.return()
   }
 
