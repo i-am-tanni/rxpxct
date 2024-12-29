@@ -194,6 +194,7 @@ fn stringify_color_code(color_code: Int, base: Int, pad_count: Int) -> String {
 
 fn cp437_to_unicode(code: Int) -> Result(Int, Nil) {
   case code {
+    x if x >= 0 && x < 0x80 -> Ok(x)
     0x80 -> Ok(0x00c7)
     0x81 -> Ok(0x00fc)
     0x82 -> Ok(0x00e9)
@@ -322,7 +323,6 @@ fn cp437_to_unicode(code: Int) -> Result(Int, Nil) {
     0xfd -> Ok(0x00b2)
     0xfe -> Ok(0x25a0)
     0xff -> Ok(0x00a0)
-    x if x >= 0 && x < 0x80 -> Ok(x)
     _ -> Error(Nil)
   }
 }
