@@ -51,12 +51,10 @@ fn row() -> Parser(List(List(Token)), ParseError(String)) {
 fn cell() -> Parser(List(Token), ParseError(String)) {
   let ascii = {
     use string <- do(digits())
-    let x = case result.unwrap(int.parse(string), -1) {
-      -1 -> 0
-      x if x < 32 -> 32
-      x -> x
-    }
-    party.return(x)
+    int.parse(string)
+    |> result.unwrap(-1)
+    |> int.max(32)
+    |> party.return()
   }
 
   let ascii = between(string("<ascii>"), ascii, string("</ascii>"))
