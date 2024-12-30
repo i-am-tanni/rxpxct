@@ -6,11 +6,8 @@ REXPaint by Kyzrati is a super useful tool for creating ascii art.
 The problem is the exports cannot be immediately used for display 
 in Multi-User Dungeons (MUDs), which often require a custom color format.
 
-The purpose of this tool is to convert a REXPaint cp437 encoded xml export
-to the unicode to the custom format a game needs for color display.
-
-Naturally this can be extended to any scenario that requires converting
-a REXPaint export to an alternative format.
+The purpose of this tool is to convert a REXPaint encoded xml export
+from CP437 to unicode and the custom format a game needs for color display.
 
 ## To Run
 
@@ -18,7 +15,7 @@ a REXPaint export to an alternative format.
 gleam run ./path/to/rexpaint_export.xml ./path/to/format.json
 ```
 
-The output is saved to the xml path as a *.txt file.
+The converted output is saved to the xml path as a '.txt' file.
 
 ## Color Formats
 
@@ -39,7 +36,7 @@ Supports color formats in 16, xterm 256, and 24 Bit (Truecolor).
 Adding a new format should be relatively straitforward following the examples
 in the folder above.
 
-For substitutions, repeated color symbols will add leading zeros for the final result.
+For substitutions, repeated color symbols will add leading zeros to the final result.
 
 ## Contact
 
