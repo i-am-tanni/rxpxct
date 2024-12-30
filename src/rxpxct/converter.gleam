@@ -192,6 +192,7 @@ fn stringify_color_code(color_code: Int, base: Int, pad_count: Int) -> String {
   string.pad_start(x, pad_count, "0")
 }
 
+// source: https://en.wikipedia.org/wiki/Code_page_437
 fn cp437_to_unicode(code: Int) -> Result(Int, Nil) {
   case code {
     0x00 -> Ok(0x0020)
