@@ -1,15 +1,13 @@
 # rxpxct - REXPaint Export Conversion Tool
 
-A CLI tool for converting REXPaint xml exports.
-
 ## Purpose
 
 REXPaint by Kyzrati is a super useful tool for creating ascii art.
 The problem is the exports cannot be immediately used for display 
 in Multi-User Dungeons (MUDs), which often require a custom color format.
 
-The purpose of this tool is to to convert a REXPaint xml export to the 
-custom format their game uses for color display.
+The purpose of this tool is to convert a REXPaint cp437 encoded xml export
+to the unicode to the custom format a game needs for color display.
 
 Naturally this can be extended to any scenario that requires converting
 a REXPaint export to an alternative format.
