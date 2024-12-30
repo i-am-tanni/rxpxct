@@ -164,6 +164,8 @@ fn background_to_string(color: Color, format: Format) -> String {
   }
 }
 
+/// return the count of the max repeating grapheme in a string
+/// to determine padding amount.
 fn max_repeating(s: String) -> Int {
   string.to_graphemes(s)
   |> list.fold(dict.new(), fn(acc, g) {
