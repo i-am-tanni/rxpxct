@@ -23,7 +23,7 @@ Several common color formats are provided for immediate use under `/formats/`:
 
 - ansi_16
 - ansi_256
-- ansi_trucolor
+- ansi_truecolor (rgb)
 - fansi256
 
 And some game specific formats:
