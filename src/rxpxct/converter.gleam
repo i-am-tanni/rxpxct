@@ -98,8 +98,8 @@ fn foreground_to_string(color: Color, format: Format) -> String {
 
     Format16(
       symbol: pattern,
-      pattern: s,
-      foreground: foreground_codes,
+      foreground: s,
+      foreground_codes: foreground_codes,
       lookups: lookups,
       ..,
     ) -> {
@@ -147,8 +147,8 @@ fn background_to_string(color: Color, format: Format) -> String {
 
     Format16(
       symbol: pattern,
-      pattern: s,
-      background: background_codes,
+      background: s,
+      background_codes: background_codes,
       lookups: lookups,
       ..,
     ) -> {
@@ -164,8 +164,8 @@ fn background_to_string(color: Color, format: Format) -> String {
   }
 }
 
-/// return the count of the max repeating grapheme in a string
-/// to determine padding amount.
+/// Return the count of the max repeating grapheme in a string.
+/// Determines padding amount for color code.
 fn max_repeating(s: String) -> Int {
   string.to_graphemes(s)
   |> list.fold(dict.new(), fn(acc, g) {

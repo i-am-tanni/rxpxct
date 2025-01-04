@@ -23,9 +23,10 @@ pub type Format {
   Format16(
     reset: String,
     symbol: String,
-    pattern: String,
-    foreground: Array(String),
-    background: Array(String),
+    foreground: String,
+    background: String,
+    foreground_codes: Array(String),
+    background_codes: Array(String),
     lookups: List(Array(Int)),
   )
 }

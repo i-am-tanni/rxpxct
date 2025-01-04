@@ -1,7 +1,6 @@
-//// read_files in format data to Format type. read_files in xml data.
+//// read in file to Format type and read in xml data to be converted
 
-import gleam/dict.{type Dict}
-import gleam/dynamic.{type Dynamic, dict, field, int, string}
+import gleam/dynamic.{type Dynamic, field, int, list, string}
 import gleam/int
 import gleam/json
 import gleam/list
@@ -83,24 +82,25 @@ fn to_format16(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
     Ok(lookups)
   }
 
-  let string_array = map_dynamic(dict(string, string), dict_to_array16)
+  let string_array = map_dynamic(list(string), to_array16)
 
   let decoder =
-    dynamic.decode6(
+    dynamic.decode7(
       Format16,
       field("reset", of: string),
       field("symbol", of: string),
-      field("pattern", of: string),
-      field("foreground", of: string_array),
-      field("background", of: string_array),
+      field("foreground", of: string),
+      field("background", of: string),
+      field("foreground_codes", of: string_array),
+      field("background_codes", of: string_array),
       lookups16,
     )
 
   decoder(json)
 }
 
-fn dict_to_array16(dict: Dict(a, b)) -> Array(b) {
-  dict |> dict.values() |> list.take(16) |> glearray.from_list()
+fn to_array16(string_list: List(a)) -> Array(a) {
+  string_list |> list.take(16) |> glearray.from_list()
 }
 
 fn base(dynamic: Dynamic) -> Result(Int, dynamic.DecodeErrors) {

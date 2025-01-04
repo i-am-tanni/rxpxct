@@ -1,0 +1,9 @@
+{
+    "color_mode": "16",
+    "symbol": "{c}",
+    "foreground": "&{c}",
+    "background": "{{c}",
+    "reset": "0;",
+    "foreground_codes": ["x", "r", "g", "O", "b", "p", "c", "w", "z", "R", "G", "Y", "B", "P", "C", "W"],
+    "background_codes": ["x", "r", "g", "O", "b", "p", "c", "w", "z", "R", "G", "Y", "B", "P", "C", "W"]
+}

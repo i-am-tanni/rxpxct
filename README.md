@@ -30,6 +30,7 @@ And some game specific formats:
 
 - Astaria (256)
 - Lumen et Umbra (Truecolor)
+- Dei delle Ere (16 colors and 256)
 
 Supports color formats in 16, xterm 256, and 24 Bit (Truecolor).
 
