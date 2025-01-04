@@ -1,8 +1,8 @@
 {
     "color_mode": "256",
-    "symbol": "[c]",
-    "foreground": "&[c]",
-    "background": "{[c]",
+    "symbol": "{ccc}",
+    "foreground": "&{ccc}",
+    "background": "{{ccc}",
     "reset": "0;",
     "base": 10
-  }
+}
