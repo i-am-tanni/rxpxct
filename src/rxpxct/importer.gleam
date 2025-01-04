@@ -31,10 +31,10 @@ fn read(path: String) -> Result(String, WrapperError) {
 }
 
 fn to_format(json_string: String) -> Result(Format, WrapperError) {
-  let decoder = fn(json_string) {
-    use <- result.lazy_or(to_format24_bit(json_string))
-    use <- result.lazy_or(to_format256(json_string))
-    to_format16(json_string)
+  let decoder = fn(json) {
+    use <- result.lazy_or(to_format24_bit(json))
+    use <- result.lazy_or(to_format256(json))
+    to_format16(json)
   }
 
   json.decode(json_string, using: decoder)
