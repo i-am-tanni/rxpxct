@@ -31,15 +31,17 @@ fn read(path: String) -> Result(String, WrapperError) {
 }
 
 fn to_format(json_string: String) -> Result(Format, WrapperError) {
-  // one decoder rather than three would likely be more efficient here 
-  //  since then the json_string would not be converted to a dict three times 
-  //  in the worst case scenario
-  use <- result.lazy_or(to_format24_bit(json_string))
-  use <- result.lazy_or(to_format256(json_string))
-  to_format16(json_string)
+  let decoder = fn(json_string) {
+    use <- result.lazy_or(to_format24_bit(json_string))
+    use <- result.lazy_or(to_format256(json_string))
+    to_format16(json_string)
+  }
+
+  json.decode(json_string, using: decoder)
+  |> result.map_error(fn(error) { DecodeError(error) })
 }
 
-fn to_format24_bit(json: String) -> Result(Format, WrapperError) {
+fn to_format24_bit(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
   let decoder =
     dynamic.decode7(
       FormatTrue,
@@ -52,11 +54,10 @@ fn to_format24_bit(json: String) -> Result(Format, WrapperError) {
       field("base", of: base),
     )
 
-  use error <- result.map_error(json.decode(json, using: decoder))
-  DecodeError(error)
+  decoder(json)
 }
 
-fn to_format256(json: String) -> Result(Format, WrapperError) {
+fn to_format256(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
   let lookups256 = fn(_) {
     let lookups = [color.generate_q2c()]
     Ok(lookups)
@@ -73,11 +74,10 @@ fn to_format256(json: String) -> Result(Format, WrapperError) {
       lookups256,
     )
 
-  use error <- result.map_error(json.decode(json, using: decoder))
-  DecodeError(error)
+  decoder(json)
 }
 
-fn to_format16(json: String) -> Result(Format, WrapperError) {
+fn to_format16(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
   let lookups16 = fn(_) {
     let lookups = [color.generate_q2c(), color.generate_code256to16()]
     Ok(lookups)
@@ -96,8 +96,7 @@ fn to_format16(json: String) -> Result(Format, WrapperError) {
       lookups16,
     )
 
-  use error <- result.map_error(json.decode(json, using: decoder))
-  DecodeError(error)
+  decoder(json)
 }
 
 fn dict_to_array16(dict: Dict(a, b)) -> Array(b) {
