@@ -1,4 +1,4 @@
-//// Reads in format data to Format type. Reads in xml data.
+//// read_files in format data to Format type. read_files in xml data.
 
 import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic, dict, field, int, string}
@@ -15,17 +15,17 @@ import simplifile
 
 pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
   case string.ends_with(xml_path, ".xml") {
-    True -> read(xml_path)
+    True -> read_file(xml_path)
     False -> Error(WrongExtension(expected: ".xml", path: xml_path))
   }
 }
 
 pub fn import_format(format_path: String) -> Result(Format, WrapperError) {
-  use json <- result.try(read(format_path))
+  use json <- result.try(read_file(format_path))
   to_format(json)
 }
 
-fn read(path: String) -> Result(String, WrapperError) {
+fn read_file(path: String) -> Result(String, WrapperError) {
   use error <- result.map_error(simplifile.read(path))
   ImportError(path: path, error: error)
 }
