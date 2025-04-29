@@ -4,9 +4,10 @@
 
 REXPaint by Kyzrati is an app for creating ascii art.
 This is a tool for converting REXPaint CP437 encoded xml exports
-into unicode encoded text and the color format used by your game. 
-The color format is defined in json. Templates are provided under /formats.
+into unicode encoded text with the color format used by your game. 
+The color format is defined in json. Templates are provided under `/formats/`.
 
+## To Run
 ```sh
 gleam run ./path/to/rexpaint_export.xml ./path/to/format.json
 ```
