@@ -1,4 +1,5 @@
-//// read in file to Format type and read in xml data to be converted
+//// Read in a REXpaint xml file and format type, then tokenize
+//// 
 
 import gleam/dynamic.{type Dynamic, field, int, list, string}
 import gleam/int
@@ -6,12 +7,14 @@ import gleam/json
 import gleam/list
 import gleam/result
 import gleam/string
-import glearray.{type Array}
+import rxpxct/array.{type Array}
 import rxpxct/color
 import rxpxct/error.{type WrapperError, DecodeError, ImportError, WrongExtension}
 import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
 import simplifile
 
+/// Read in a REXpaint xml file
+/// 
 pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
   case string.ends_with(xml_path, ".xml") {
     True -> read_file(xml_path)
@@ -19,14 +22,15 @@ pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
   }
 }
 
+/// Read in a json color format definition. See /formats/ for templates.
+/// 
 pub fn import_format(format_path: String) -> Result(Format, WrapperError) {
   use json <- result.try(read_file(format_path))
   to_format(json)
 }
 
 fn read_file(path: String) -> Result(String, WrapperError) {
-  use error <- result.map_error(simplifile.read(path))
-  ImportError(path: path, error: error)
+  result.map_error(simplifile.read(path), ImportError(path: path, error: _))
 }
 
 fn to_format(json_string: String) -> Result(Format, WrapperError) {
@@ -100,7 +104,7 @@ fn to_format16(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
 }
 
 fn to_array16(string_list: List(a)) -> Array(a) {
-  string_list |> list.take(16) |> glearray.from_list()
+  string_list |> list.take(16) |> array.from_list()
 }
 
 fn base(dynamic: Dynamic) -> Result(Int, dynamic.DecodeErrors) {

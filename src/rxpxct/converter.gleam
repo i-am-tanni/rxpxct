@@ -1,4 +1,5 @@
-//// Code for converting parsed data to strings
+//// Code for converting tokens to strings.
+//// 
 
 import gleam/dict
 import gleam/int
@@ -6,41 +7,46 @@ import gleam/list
 import gleam/pair
 import gleam/result
 import gleam/string
-import glearray
+import gleam/string_tree
+import rxpxct/array
 import rxpxct/color.{type Color, Color, Color16, Color256, TrueColor}
 import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
-import rxpxct/token.{type Token}
+import rxpxct/tokens.{type Token, Background, Cp437, Foreground, Newline}
 
-pub fn run(lines: List(List(Token)), format: Format) -> List(String) {
+/// Return a string list given a list of tokens.
+/// 
+pub fn run(lines: List(List(Token)), format: Format) -> String {
   let reset = format.reset
 
   lines
   |> minimize_color_codes()
   |> list.flatten()
-  |> to_string(format)
+  |> to_strings(format)
   |> list.prepend(reset)
-  |> list.append([reset])
+  |> string_tree.from_strings()
+  |> string_tree.append(reset)
+  |> string_tree.to_string()
 }
 
-/// eliminates redundant color codes
+// Eliminate redundant color codes
 fn minimize_color_codes(tokens: List(List(Token))) -> List(List(Token)) {
   list.map_fold(tokens, #(Color, Color), fn(acc, chunk) {
     let #(last_fgd, last_bkg) = acc
     case chunk {
-      [token.Foreground(fgd), token.Background(bkg), ascii] -> {
+      [Foreground(fgd), Background(bkg), cp437] -> {
         case fgd == last_fgd, bkg == last_bkg {
           True, True -> {
-            #(acc, [ascii])
+            #(acc, [cp437])
           }
 
           True, False -> {
             let acc = #(last_fgd, bkg)
-            #(acc, [token.Background(bkg), ascii])
+            #(acc, [Background(bkg), cp437])
           }
 
           False, True -> {
             let acc = #(fgd, last_bkg)
-            #(acc, [token.Foreground(fgd), ascii])
+            #(acc, [Foreground(fgd), cp437])
           }
 
           False, False -> {
@@ -55,111 +61,50 @@ fn minimize_color_codes(tokens: List(List(Token))) -> List(List(Token)) {
   |> pair.second()
 }
 
-fn to_string(tokens: List(Token), format: Format) -> List(String) {
+fn to_strings(tokens: List(Token), format: Format) -> List(String) {
   list.map(tokens, fn(token) {
     case token {
-      token.Ascii(ascii) -> ascii_to_string(ascii)
-      token.Foreground(foreground) -> foreground_to_string(foreground, format)
-      token.Background(background) -> background_to_string(background, format)
-      token.Newline -> "\r\n"
+      Cp437(cp437) -> cp437_to_string(cp437)
+      Foreground(token) -> stringify(format.foreground, token, format)
+      Background(token) -> stringify(format.background, token, format)
+      Newline -> "\r\n"
     }
   })
 }
 
-fn foreground_to_string(color: Color, format: Format) -> String {
+// Stringify a pattern to color coded string given a color and format
+fn stringify(pattern: String, color: Color, format: Format) -> String {
   case format {
-    FormatTrue(
-      r: r_pattern,
-      g: g_pattern,
-      b: b_pattern,
-      foreground: s,
-      base: base,
-      ..,
-    ) -> {
+    FormatTrue(r_pattern:, g_pattern:, b_pattern:, base:, ..) -> {
       let assert TrueColor(red: r, green: g, blue: b) = color
       let pad_count = max_repeating(r_pattern)
 
-      s
+      pattern
       |> string.replace(r_pattern, stringify_color_code(r, base, pad_count))
       |> string.replace(g_pattern, stringify_color_code(g, base, pad_count))
       |> string.replace(b_pattern, stringify_color_code(b, base, pad_count))
     }
 
-    Format256(symbol: pattern, foreground: s, lookups: lookups, base: base, ..) -> {
+    Format256(symbol:, lookups:, base:, ..) -> {
       let assert [q2c] = lookups
       let assert Color256(color_code) = color.downsample256(color, with: q2c)
-      let pad_count = max_repeating(pattern)
+      let pad_count = max_repeating(symbol)
       string.replace(
-        s,
         pattern,
+        symbol,
         stringify_color_code(color_code, base, pad_count),
       )
     }
 
-    Format16(
-      symbol: pattern,
-      foreground: s,
-      foreground_codes: foreground_codes,
-      lookups: lookups,
-      ..,
-    ) -> {
+    Format16(symbol:, foreground_codes:, lookups:, ..) -> {
       let assert [q2c, code256to16] = lookups
       let assert Color16(code16) =
         color
         |> color.downsample256(with: q2c)
         |> color.downsample16(with: code256to16)
 
-      let assert Ok(replacement) = glearray.get(foreground_codes, code16)
-      string.replace(s, pattern, replacement)
-    }
-  }
-}
-
-fn background_to_string(color: Color, format: Format) -> String {
-  case format {
-    FormatTrue(
-      r: r_pattern,
-      g: g_pattern,
-      b: b_pattern,
-      foreground: s,
-      base: base,
-      ..,
-    ) -> {
-      let assert TrueColor(red: r, green: g, blue: b) = color
-      let pad_count = max_repeating(r_pattern)
-
-      s
-      |> string.replace(r_pattern, stringify_color_code(r, base, pad_count))
-      |> string.replace(g_pattern, stringify_color_code(g, base, pad_count))
-      |> string.replace(b_pattern, stringify_color_code(b, base, pad_count))
-    }
-
-    Format256(symbol: pattern, background: s, lookups: lookups, base: base, ..) -> {
-      let assert [q2c] = lookups
-      let assert Color256(color_code) = color.downsample256(color, with: q2c)
-      let pad_count = max_repeating(pattern)
-      string.replace(
-        s,
-        pattern,
-        stringify_color_code(color_code, base, pad_count),
-      )
-    }
-
-    Format16(
-      symbol: pattern,
-      background: s,
-      background_codes: background_codes,
-      lookups: lookups,
-      ..,
-    ) -> {
-      let assert [q2c, code256to16] = lookups
-      let assert Color16(code16) =
-        color
-        |> color.downsample256(with: q2c)
-        |> color.downsample16(with: code256to16)
-
-      let assert Ok(replacement) = glearray.get(background_codes, code16)
-      string.replace(s, pattern, replacement)
+      let assert Ok(replacement) = array.get(foreground_codes, code16)
+      string.replace(pattern, symbol, replacement)
     }
   }
 }
@@ -171,7 +116,7 @@ fn max_repeating(s: String) -> Int {
   |> list.fold(dict.new(), fn(acc, g) {
     case dict.get(acc, g) {
       Ok(x) -> dict.insert(acc, g, x + 1)
-      Error(_) -> dict.insert(acc, g, 1)
+      Error(Nil) -> dict.insert(acc, g, 1)
     }
   })
   |> dict.values()
@@ -179,14 +124,14 @@ fn max_repeating(s: String) -> Int {
   |> result.unwrap(0)
 }
 
-fn ascii_to_string(x: Int) -> String {
-  let assert Ok(cp) = {
-    use val <- result.try(cp437_to_unicode(x))
-    string.utf_codepoint(val)
-  }
+// converts cp437 codes to a utf8 codepoints and then to a string
+fn cp437_to_string(x: Int) -> String {
+  let assert Ok(cp) =
+    cp437_to_unicode(x)
+    |> result.unwrap(0x0020)
+    |> string.utf_codepoint
 
-  list.wrap(cp)
-  |> string.from_utf_codepoints()
+  string.from_utf_codepoints([cp])
 }
 
 fn stringify_color_code(color_code: Int, base: Int, pad_count: Int) -> String {

@@ -1,7 +1,9 @@
-//// Functions for downsampling colors. Downsample algorithm ported from Tmux.
+//// Defines color types and functions for converting color types to
+//// downsampled color types.
+//// 
 
 import gleam/bool
-import glearray.{type Array}
+import rxpxct/array.{type Array}
 
 pub type Color {
   TrueColor(red: Int, green: Int, blue: Int)
@@ -13,7 +15,7 @@ pub type Color {
 /// lookup table for downsampling 24 bit truecolor to 256 colors
 pub fn generate_q2c() -> Array(Int) {
   [0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff]
-  |> glearray.from_list()
+  |> array.from_list()
 }
 
 /// lookup table for downsampling xterm 256 colors to 16 colors
@@ -32,7 +34,7 @@ pub fn generate_code256to16() -> Array(Int) {
     13, 9, 9, 9, 9, 9, 13, 11, 11, 11, 11, 11, 15, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8,
     8, 8, 7, 7, 7, 7, 7, 7, 15, 15, 15, 15, 15, 15,
   ]
-  |> glearray.from_list()
+  |> array.from_list()
 }
 
 pub fn downsample256(color: Color, with q2c: Array(Int)) -> Color {
@@ -43,17 +45,17 @@ pub fn downsample256(color: Color, with q2c: Array(Int)) -> Color {
 
 pub fn downsample16(color: Color, with code256to16: Array(Int)) -> Color {
   let assert Color256(code256) = color
-  let assert Ok(code16) = glearray.get(code256to16, code256)
+  let assert Ok(code16) = array.get(code256to16, code256)
   Color16(code16)
 }
 
 fn rgb_to_color256(r: Int, g: Int, b: Int, with q2c: Array(Int)) -> Int {
   let qr = color_to_6cube(r)
-  let assert Ok(cr) = glearray.get(q2c, qr)
+  let assert Ok(cr) = array.get(q2c, qr)
   let qg = color_to_6cube(g)
-  let assert Ok(cg) = glearray.get(q2c, qg)
+  let assert Ok(cg) = array.get(q2c, qg)
   let qb = color_to_6cube(b)
-  let assert Ok(cb) = glearray.get(q2c, qb)
+  let assert Ok(cb) = array.get(q2c, qb)
 
   case cr == r && cg == g && cb == b {
     True -> 16 + { 36 * qr } + { 6 * qg } + qb

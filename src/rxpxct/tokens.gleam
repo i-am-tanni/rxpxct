@@ -1,3 +1,6 @@
+//// Tokenizes a REXpaint xml export.
+//// 
+
 import gleam/int
 import gleam/list
 import gleam/result
@@ -7,9 +10,15 @@ import party.{
 }
 import rxpxct/color.{type Color, TrueColor}
 import rxpxct/error.{type WrapperError}
-import rxpxct/token.{type Token, Ascii, Background, Foreground, Newline}
 
-pub fn run(s: String) -> Result(List(List(Token)), WrapperError) {
+pub type Token {
+  Foreground(Color)
+  Background(Color)
+  Cp437(Int)
+  Newline
+}
+
+pub fn from_string(s: String) -> Result(List(List(Token)), WrapperError) {
   party.go(xml_parser(), s)
   |> result.map_error(fn(e) { error.ParseError(e) })
 }
@@ -64,7 +73,7 @@ fn cell() -> Parser(List(Token), ParseError(String)) {
     use ascii <- do(ascii)
     use fgd <- do(foreground)
     use bkg <- do(background)
-    party.return([Foreground(fgd), Background(bkg), Ascii(ascii)])
+    party.return([Foreground(fgd), Background(bkg), Cp437(ascii)])
   }
 
   between(string("<cell>"), cell, string("</cell>"))
