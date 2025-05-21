@@ -1,6 +1,8 @@
 import rxpxct/array.{type Array}
 
-/// A color format
+/// Color formatting information decoded from a json format specifier file.
+/// See templates in /formats/.
+/// 
 pub type Format {
   /// True Color aka 24bit Color. REXpaint outputs this color format natively.
   /// 
