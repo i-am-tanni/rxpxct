@@ -1,3 +1,4 @@
+import gleam/list
 import gleeunit
 import gleeunit/should
 import rxpxct
@@ -9,10 +10,7 @@ pub fn main() {
 
 const sample_xml_path = "./sample/sample.xml"
 
-const sample_format_path = "./formats/fansi256.json"
-
-// gleeunit test functions end in `_test`
 pub fn conversion_test() {
-  should.be_ok(rxpxct.run(sample_xml_path, sample_format_path))
-  simplifile.delete("./sample/sample.txt")
+  should.be_ok(simplifile.get_files("./formats"))
+  |> list.each(fn(path) { should.be_ok(rxpxct.run(sample_xml_path, path)) })
 }

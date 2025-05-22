@@ -1,8 +1,7 @@
 //// Read in a REXpaint xml file and format type, then tokenize
 //// 
 
-import gleam/dynamic.{type Dynamic, field, int, list, string}
-import gleam/int
+import gleam/dynamic/decode
 import gleam/json
 import gleam/list
 import gleam/result
@@ -33,97 +32,74 @@ fn read_file(path: String) -> Result(String, WrapperError) {
   result.map_error(simplifile.read(path), ImportError(path: path, error: _))
 }
 
-fn to_format(json_string: String) -> Result(Format, WrapperError) {
-  let decoder = fn(json) {
-    use <- result.lazy_or(to_format24_bit(json))
-    use <- result.lazy_or(to_format256(json))
-    to_format16(json)
+fn to_format(json: String) -> Result(Format, WrapperError) {
+  let result = {
+    use <- result.lazy_or(json.parse(json, to_format24_bit()))
+    use <- result.lazy_or(json.parse(json, to_format256()))
+    json.parse(json, to_format16())
   }
 
-  json.decode(json_string, using: decoder)
-  |> result.map_error(fn(error) { DecodeError(error) })
+  result.map_error(result, fn(error) { DecodeError(error) })
 }
 
-fn to_format24_bit(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
-  let decoder =
-    dynamic.decode7(
-      FormatTrue,
-      field("reset", of: string),
-      field("r", of: string),
-      field("g", of: string),
-      field("b", of: string),
-      field("foreground", of: string),
-      field("background", of: string),
-      field("base", of: base),
-    )
-
-  decoder(json)
+fn to_format24_bit() -> decode.Decoder(Format) {
+  use foreground <- decode.field("foreground", decode.string)
+  use background <- decode.field("background", decode.string)
+  use reset <- decode.field("reset", decode.string)
+  use r_pattern <- decode.field("r", decode.string)
+  use g_pattern <- decode.field("g", decode.string)
+  use b_pattern <- decode.field("b", decode.string)
+  use base <- decode.field("base", decode.int)
+  FormatTrue(
+    foreground: foreground,
+    background: background,
+    reset: reset,
+    r_pattern: r_pattern,
+    g_pattern: g_pattern,
+    b_pattern: b_pattern,
+    base: base,
+  )
+  |> decode.success
 }
 
-fn to_format256(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
-  let lookups256 = fn(_) {
-    let lookups = [color.generate_q2c()]
-    Ok(lookups)
-  }
-
-  let decoder =
-    dynamic.decode6(
-      Format256,
-      field("reset", of: string),
-      field("symbol", of: string),
-      field("foreground", of: string),
-      field("background", of: string),
-      field("base", of: base),
-      lookups256,
-    )
-
-  decoder(json)
+fn to_format256() -> decode.Decoder(Format) {
+  use foreground <- decode.field("foreground", decode.string)
+  use background <- decode.field("background", decode.string)
+  use reset <- decode.field("reset", decode.string)
+  use symbol <- decode.field("symbol", decode.string)
+  use base <- decode.field("base", decode.int)
+  Format256(
+    foreground: foreground,
+    background: background,
+    reset: reset,
+    symbol: symbol,
+    base: base,
+    lookups: [color.generate_q2c()],
+  )
+  |> decode.success
 }
 
-fn to_format16(json: Dynamic) -> Result(Format, dynamic.DecodeErrors) {
-  let lookups16 = fn(_) {
-    let lookups = [color.generate_q2c(), color.generate_code256to16()]
-    Ok(lookups)
-  }
+fn to_format16() -> decode.Decoder(Format) {
+  let string_array = decode.list(decode.string)
 
-  let string_array = map_dynamic(list(string), to_array16)
-
-  let decoder =
-    dynamic.decode7(
-      Format16,
-      field("reset", of: string),
-      field("symbol", of: string),
-      field("foreground", of: string),
-      field("background", of: string),
-      field("foreground_codes", of: string_array),
-      field("background_codes", of: string_array),
-      lookups16,
-    )
-
-  decoder(json)
+  use foreground <- decode.field("foreground", decode.string)
+  use background <- decode.field("background", decode.string)
+  use reset <- decode.field("reset", decode.string)
+  use symbol <- decode.field("symbol", decode.string)
+  use foreground_codes <- decode.field("foreground_codes", string_array)
+  use background_codes <- decode.field("background_codes", string_array)
+  Format16(
+    foreground: foreground,
+    background: background,
+    reset: reset,
+    symbol: symbol,
+    foreground_codes: foreground_codes |> to_array16(),
+    background_codes: background_codes |> to_array16(),
+    lookups: [color.generate_q2c(), color.generate_code256to16()],
+  )
+  |> decode.success
 }
 
-fn to_array16(string_list: List(a)) -> Array(a) {
+fn to_array16(string_list: List(String)) -> Array(String) {
   string_list |> list.take(16) |> array.from_list()
-}
-
-fn base(dynamic: Dynamic) -> Result(Int, dynamic.DecodeErrors) {
-  use x <- result.try(int(dynamic))
-  case x >= 2 && x <= 32 {
-    True -> Ok(x)
-    False -> {
-      let x = int.to_string(x)
-      let path = ["base:", x]
-      dynamic.DecodeError(expected: "Int >= 2 and <= 32", found: x, path: path)
-      |> list.wrap()
-      |> Error()
-    }
-  }
-}
-
-fn map_dynamic(
-  t1: fn(Dynamic) -> Result(a, dynamic.DecodeErrors),
-  map_fun: fn(a) -> b,
-) -> fn(Dynamic) -> Result(b, dynamic.DecodeErrors) {
-  fn(dynamic) { result.map(t1(dynamic), map_fun) }
 }
