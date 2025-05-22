@@ -43,12 +43,12 @@ fn to_format(json: String) -> Result(Format, WrapperError) {
 }
 
 fn to_format24_bit() -> decode.Decoder(Format) {
-  use foreground <- decode.field("foreground", decode.string)
-  use background <- decode.field("background", decode.string)
-  use reset <- decode.field("reset", decode.string)
   use r_pattern <- decode.field("r", decode.string)
   use g_pattern <- decode.field("g", decode.string)
   use b_pattern <- decode.field("b", decode.string)
+  use foreground <- decode.field("foreground", decode.string)
+  use background <- decode.field("background", decode.string)
+  use reset <- decode.field("reset", decode.string)
   use base <- decode.field("base", decode.int)
   FormatTrue(
     foreground: foreground,
@@ -69,11 +69,11 @@ fn to_format256() -> decode.Decoder(Format) {
   use symbol <- decode.field("symbol", decode.string)
   use base <- decode.field("base", decode.int)
   Format256(
+    base: base,
     foreground: foreground,
     background: background,
     reset: reset,
     symbol: symbol,
-    base: base,
     lookups: [color.generate_q2c()],
   )
   |> decode.success
@@ -81,13 +81,12 @@ fn to_format256() -> decode.Decoder(Format) {
 
 fn to_format16() -> decode.Decoder(Format) {
   let string_array = decode.list(decode.string)
-
+  use foreground_codes <- decode.field("foreground_codes", string_array)
+  use background_codes <- decode.field("background_codes", string_array)
   use foreground <- decode.field("foreground", decode.string)
   use background <- decode.field("background", decode.string)
   use reset <- decode.field("reset", decode.string)
   use symbol <- decode.field("symbol", decode.string)
-  use foreground_codes <- decode.field("foreground_codes", string_array)
-  use background_codes <- decode.field("background_codes", string_array)
   Format16(
     foreground: foreground,
     background: background,
