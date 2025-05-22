@@ -1,5 +1,3 @@
-import gleam/json
-import gleam/list
 import gleeunit
 import gleeunit/should
 import rxpxct/importer
@@ -19,7 +17,6 @@ pub fn base_parsing_failed_test() {
     \"base\": 33
   }
   "
-  echo importer.to_format(json)
   should.be_error(importer.to_format(json))
 }
 
@@ -33,7 +30,6 @@ pub fn color_mode_missing_test() {
     \"base\": 10
   }
   "
-  echo importer.to_format(json)
   should.be_error(importer.to_format(json))
 }
 
@@ -48,6 +44,5 @@ pub fn color_mode_invalid_test() {
     \"base\": 10
   }
   "
-  echo importer.to_format(json)
   should.be_error(importer.to_format(json))
 }

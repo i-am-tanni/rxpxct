@@ -12,12 +12,6 @@ import rxpxct/error.{type WrapperError, DecodeError, ImportError, WrongExtension
 import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
 import simplifile
 
-type ColorMode {
-  Truecolor
-  Xterm256
-  Color16
-}
-
 /// Read in a REXpaint xml file
 /// 
 pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
@@ -41,25 +35,20 @@ fn read_file(path: String) -> Result(String, WrapperError) {
 /// Convert json to a color Format
 /// 
 pub fn to_format(json: String) -> Result(Format, WrapperError) {
-  let decoder = {
-    use color_mode <- decode.field("color_mode", decode_color_mode())
-    case color_mode {
-      Truecolor -> to_format24_bit()
-      Xterm256 -> to_format256()
-      Color16 -> to_format16()
-    }
-  }
+  let decoder =
+    decode.one_of(to_format24_bit(), [to_format256(), to_format16()])
 
   json.parse(json, decoder)
   |> result.map_error(fn(error) { DecodeError(error) })
 }
 
 fn to_format24_bit() -> decode.Decoder(Format) {
+  use _ <- decode.field("color_mode", decode_string_matches("truecolor"))
+  use foreground <- decode.field("foreground", decode.string)
+  use background <- decode.field("background", decode.string)
   use r_pattern <- decode.field("r", decode.string)
   use g_pattern <- decode.field("g", decode.string)
   use b_pattern <- decode.field("b", decode.string)
-  use foreground <- decode.field("foreground", decode.string)
-  use background <- decode.field("background", decode.string)
   use reset <- decode.field("reset", decode.string)
   use base <- decode.field("base", decode.int)
   FormatTrue(
@@ -75,6 +64,7 @@ fn to_format24_bit() -> decode.Decoder(Format) {
 }
 
 fn to_format256() -> decode.Decoder(Format) {
+  use _ <- decode.field("color_mode", decode_string_matches("256"))
   use foreground <- decode.field("foreground", decode.string)
   use background <- decode.field("background", decode.string)
   use reset <- decode.field("reset", decode.string)
@@ -92,13 +82,14 @@ fn to_format256() -> decode.Decoder(Format) {
 }
 
 fn to_format16() -> decode.Decoder(Format) {
+  use _ <- decode.field("color_mode", decode_string_matches("16"))
   let string_array = decode.list(decode.string)
-  use foreground_codes <- decode.field("foreground_codes", string_array)
-  use background_codes <- decode.field("background_codes", string_array)
   use foreground <- decode.field("foreground", decode.string)
   use background <- decode.field("background", decode.string)
   use reset <- decode.field("reset", decode.string)
   use symbol <- decode.field("symbol", decode.string)
+  use foreground_codes <- decode.field("foreground_codes", string_array)
+  use background_codes <- decode.field("background_codes", string_array)
   Format16(
     foreground: foreground,
     background: background,
@@ -111,13 +102,11 @@ fn to_format16() -> decode.Decoder(Format) {
   |> decode.success
 }
 
-fn decode_color_mode() -> decode.Decoder(ColorMode) {
+fn decode_string_matches(s: String) -> decode.Decoder(String) {
   use decoded_string <- decode.then(decode.string)
-  case decoded_string {
-    "truecolor" -> decode.success(Truecolor)
-    "256" -> decode.success(Xterm256)
-    "16" -> decode.success(Color16)
-    _ -> decode.failure(Truecolor, "Unknown color mode: " <> decoded_string)
+  case decoded_string == s {
+    True -> decode.success(s)
+    False -> decode.failure(s, "Unknown color mode: " <> decoded_string)
   }
 }
 
