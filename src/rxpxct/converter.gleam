@@ -31,24 +31,35 @@ pub fn run(lines: List(List(Token)), format: Format) -> String {
 // Eliminate redundant color codes
 fn minimize_color_codes(tokens: List(List(Token))) -> List(List(Token)) {
   list.map_fold(tokens, #(Color, Color), fn(acc, chunk) {
+    // track the last foreground and background information
     let #(last_fgd, last_bkg) = acc
     case chunk {
       [Foreground(fgd), Background(bkg), cp437] -> {
         case fgd == last_fgd, bkg == last_bkg {
+          // If foreground and background color information did not change from
+          // the last codepoint, record thonly the codepoint, as all color
+          // information can be removed as redundant.
           True, True -> {
             #(acc, [cp437])
           }
 
-          True, False -> {
-            let acc = #(last_fgd, bkg)
-            #(acc, [Background(bkg), cp437])
-          }
-
+          // If only the foreground color changed, record that and the
+          // codepoint
           False, True -> {
             let acc = #(fgd, last_bkg)
             #(acc, [Foreground(fgd), cp437])
           }
 
+          // If only the background color changed, record that and the 
+          // codepoint
+          True, False -> {
+            let acc = #(last_fgd, bkg)
+            #(acc, [Background(bkg), cp437])
+          }
+
+          // If neither the foreground nor background color have changed
+          // record all available information as there is no redundant info
+          // to eliminate.
           False, False -> {
             let acc = #(fgd, bkg)
             #(acc, chunk)
@@ -72,7 +83,7 @@ fn to_strings(tokens: List(Token), format: Format) -> List(String) {
   })
 }
 
-// Stringify a pattern to color coded string given a color and format
+// Stringify a pattern to a color coded string given a color and format
 fn stringify(pattern: String, color: Color, format: Format) -> String {
   case format {
     FormatTrue(r_pattern:, g_pattern:, b_pattern:, base:, ..) -> {
@@ -110,7 +121,7 @@ fn stringify(pattern: String, color: Color, format: Format) -> String {
 }
 
 /// Return the count of the max repeating grapheme in a string.
-/// Determines padding amount for color code.
+/// Determines leading zeros padding amount for the color code.
 fn max_repeating(s: String) -> Int {
   string.to_graphemes(s)
   |> list.fold(dict.new(), fn(acc, g) {
@@ -124,7 +135,7 @@ fn max_repeating(s: String) -> Int {
   |> result.unwrap(0)
 }
 
-// converts cp437 codes to a utf8 codepoints and then to a string
+// Converts cp437 codes to a utf8 codepoints and then to a string
 fn cp437_to_string(x: Int) -> String {
   let assert Ok(cp) =
     cp437_to_unicode(x)

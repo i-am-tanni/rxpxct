@@ -12,6 +12,12 @@ import rxpxct/error.{type WrapperError, DecodeError, ImportError, WrongExtension
 import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
 import simplifile
 
+type ColorMode {
+  Truecolor
+  Xterm256
+  Color16
+}
+
 /// Read in a REXpaint xml file
 /// 
 pub fn import_xml(xml_path: String) -> Result(String, WrapperError) {
@@ -32,14 +38,20 @@ fn read_file(path: String) -> Result(String, WrapperError) {
   result.map_error(simplifile.read(path), ImportError(path: path, error: _))
 }
 
-fn to_format(json: String) -> Result(Format, WrapperError) {
-  let result = {
-    use <- result.lazy_or(json.parse(json, to_format24_bit()))
-    use <- result.lazy_or(json.parse(json, to_format256()))
-    json.parse(json, to_format16())
+/// Convert json to a color Format
+/// 
+pub fn to_format(json: String) -> Result(Format, WrapperError) {
+  let decoder = {
+    use color_mode <- decode.field("color_mode", decode_color_mode())
+    case color_mode {
+      Truecolor -> to_format24_bit()
+      Xterm256 -> to_format256()
+      Color16 -> to_format16()
+    }
   }
 
-  result.map_error(result, fn(error) { DecodeError(error) })
+  json.parse(json, decoder)
+  |> result.map_error(fn(error) { DecodeError(error) })
 }
 
 fn to_format24_bit() -> decode.Decoder(Format) {
@@ -67,7 +79,7 @@ fn to_format256() -> decode.Decoder(Format) {
   use background <- decode.field("background", decode.string)
   use reset <- decode.field("reset", decode.string)
   use symbol <- decode.field("symbol", decode.string)
-  use base <- decode.field("base", decode.int)
+  use base <- decode.field("base", decode_base())
   Format256(
     base: base,
     foreground: foreground,
@@ -97,6 +109,26 @@ fn to_format16() -> decode.Decoder(Format) {
     lookups: [color.generate_q2c(), color.generate_code256to16()],
   )
   |> decode.success
+}
+
+fn decode_color_mode() -> decode.Decoder(ColorMode) {
+  use decoded_string <- decode.then(decode.string)
+  case decoded_string {
+    "truecolor" -> decode.success(Truecolor)
+    "256" -> decode.success(Xterm256)
+    "16" -> decode.success(Color16)
+    _ -> decode.failure(Truecolor, "Unknown color mode: " <> decoded_string)
+  }
+}
+
+// decode the base that the color codes are expressed in
+// e.g. hex codes or decimal
+fn decode_base() -> decode.Decoder(Int) {
+  use decoded_int <- decode.then(decode.int)
+  case decoded_int >= 10 && decoded_int <= 32 {
+    True -> decode.success(decoded_int)
+    False -> decode.failure(decoded_int, "Base must be >= 10 and <= 32")
+  }
 }
 
 fn to_array16(string_list: List(String)) -> Array(String) {
