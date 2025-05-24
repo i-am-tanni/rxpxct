@@ -10,7 +10,7 @@ import gleam/string
 import gleam/string_tree
 import rxpxct/array
 import rxpxct/color.{type Color, Color, Color16, Color256, TrueColor}
-import rxpxct/format.{type Format, Format16, Format256, FormatTrue}
+import rxpxct/importer.{type Format, Format16, Format256, FormatTrue}
 import rxpxct/tokens.{type Token, Background, Cp437, Foreground, Newline}
 
 /// Return a string list given a list of tokens.
