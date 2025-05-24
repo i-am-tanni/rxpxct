@@ -101,11 +101,11 @@ fn hex256() -> Parser(Int, ParseError(String)) {
 }
 
 /// Parse zero or more whitespace characters.
-pub fn whitespace() -> Parser(String, e) {
+fn whitespace() -> Parser(String, e) {
   many_concat(choice([char(" "), char("\t"), char("\r\n"), char("\n")]))
 }
 
 /// Parse one or more whitespace characters.
-pub fn whitespace1() -> Parser(String, e) {
+fn whitespace1() -> Parser(String, e) {
   many1_concat(choice([char(" "), char("\t"), char("\r\n"), char("\n")]))
 }
